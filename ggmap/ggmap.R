@@ -5,8 +5,8 @@ library(ggmap)
 library(ggalt)
 library(viridis)
 
-setwd("~/git/mobile-context-qoe-management-paper/cartography/")
-df <- read.csv(unz("netztest-opendata.zip", "netztest-opendata.csv"), stringsAsFactors = FALSE)
+setwd("~/git/qoe-cartography/")
+df <- read.csv(unz("ggmap/netztest-opendata.zip", "netztest-opendata.csv"), stringsAsFactors = FALSE)
 
 
 ## get base map for the region
@@ -17,9 +17,42 @@ map.googol + geom_point(data = df, aes(x = long, y = lat, color = download_kbit/
   scale_colour_viridis(trans = "log")# + 
 ggsave("carto-points.pdf")
 
+yt_colors <- function(x) {
+  mn <- mean(x)
+  if(mn >= 45 * 1.25)
+    return("2160p")
+  else if(mn >= 16 * 1.25)
+    return("1440p")
+  else if(mn >= 8 * 1.25)
+    return("1080p")
+  else if(mn >= 5 * 1.25)
+    return("720p")
+  else if(mn >= 2.5 * 1.25)
+    return("480p")
+  else if(mn >= 1 * 1.25)
+    return("360p")
+  else
+    return("n/a")
+}
+
 ## summary2d example
 library(hexbin)
 map.googol + coord_cartesian() +
-  stat_summary_hex(data = df, aes(x = long, y = lat, z=download_kbit/1024), fun = mean, alpha = 0.5, bins = 100) + 
-  scale_fill_viridis(trans = "log")
-ggsave("carto-summary2d-hex-mean.pdf")
+  stat_summary_hex(data = df, aes(x = long, y = lat, z=download_kbit/1024), fun = yt_colors, alpha = 0.7, bins = 60) + 
+  scale_fill_manual(values = c("2160p" = "#66FF00", "1440p" = "#99FFCC", 
+                               "1080p" = "#0066FF", "720p" = "#CCFFFF", 
+                               "480p" = "#FFFFCC", "360p" = "#FF9933", 
+                               "n/a" = "#FF6666"))
+ggsave("carto-summary2d-hex-ytcolors.pdf")
+
+table(df$network_type) # filter out categories with insufficient samples
+df.sub <- subset(df,network_type %in% c("LTE", "HSPA+", "LAN", "EDGE", "UMTS", "WLAN"))
+
+map.googol + coord_cartesian() +
+  stat_summary_hex(data = df.sub, aes(x = long, y = lat, z=download_kbit/1024), fun = yt_colors, alpha = 0.7, bins = 60) + 
+  scale_fill_manual(values = c("2160p" = "#66FF00", "1440p" = "#99FFCC", 
+                               "1080p" = "#0066FF", "720p" = "#CCFFFF", 
+                               "480p" = "#FFFFCC", "360p" = "#FF9933", 
+                               "n/a" = "#FF6666")) + 
+  facet_wrap(facets = ~network_type)
+ggsave("carto-summary2d-ytcolors-network_facets.pdf")
