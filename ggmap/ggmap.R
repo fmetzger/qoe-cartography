@@ -11,7 +11,7 @@ df <- read.csv(unz("ggmap/netztest-opendata.zip", "netztest-opendata.csv"), stri
 
 
 ## get base map for the region
-map.googol <- qmap("Wien", zoom=12, source = "stamen", color = "bw")  
+map.googol <- qmap("Wien", zoom=12, source = "google", maptype = "roadmap")  
 
 ## simple bandwidth point map
 map.googol + geom_point(data = df, aes(x = long, y = lat, color = download_kbit/1024), alpha = 0.7,size = 1) +
@@ -57,7 +57,7 @@ yt_colors_q5 <- function(x) {
 ## summary2d example
 library(hexbin)
 map.googol + coord_cartesian() +
-  stat_summary_hex(data = df, aes(x = long, y = lat, z=download_kbit/1024), fun = yt_colors, alpha = 0.7, bins = 60) + 
+  stat_summary_hex(data = df, aes(x = long, y = lat, z=download_kbit/1024), fun = yt_colors, alpha = 0.5, color = "grey", bins = 120) + 
   scale_fill_manual(values = c("2160p" = "#66FF00", "1440p" = "#99FFCC", 
                                "1080p" = "#0066FF", "720p" = "#CCFFFF", 
                                "480p" = "#FFFFCC", "360p" = "#FF9933", 
@@ -70,7 +70,7 @@ table(df$network_type) # filter out categories with insufficient samples
 df.sub <- subset(df,network_type %in% c("LTE", "HSPA+", "LAN", "EDGE", "UMTS", "WLAN"))
 
 map.googol + coord_cartesian() +
-  stat_summary_hex(data = df.sub, aes(x = long, y = lat, z=download_kbit/1024), fun = yt_colors, alpha = 0.9, bins = 100) + 
+  stat_summary_hex(data = df.sub, aes(x = long, y = lat, z=download_kbit/1024), fun = yt_colors, alpha = 0.9, bins = 100, color = "grey") + 
   scale_fill_manual(values = c("2160p" = "#66FF00", "1440p" = "#99FFCC", 
                                "1080p" = "#0066FF", "720p" = "#CCFFFF", 
                                "480p" = "#FFFFCC", "360p" = "#FF9933", 
@@ -81,7 +81,7 @@ ggsave("carto-summary2d-ytcolors-network_facets.pdf")
 
 ### facets with 5% quantile as base instead of mean BW
 map.googol + coord_cartesian() +
-  stat_summary_hex(data = df.sub, aes(x = long, y = lat, z=download_kbit/1024), fun = yt_colors_q5, alpha = 0.9, bins = 100) + 
+  stat_summary_hex(data = df.sub, aes(x = long, y = lat, z=download_kbit/1024), fun = yt_colors_q5, alpha = 0.9, bins = 100, color = "grey") + 
   scale_fill_manual(values = c("2160p" = "#66FF00", "1440p" = "#99FFCC", 
                                "1080p" = "#0066FF", "720p" = "#CCFFFF", 
                                "480p" = "#FFFFCC", "360p" = "#FF9933", 
